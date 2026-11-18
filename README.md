@@ -151,20 +151,6 @@ No safe sequence exists -> resource state is UNSAFE.
 ```
 [Observed effect] Child terminated by signal 24 (SIGXCPU=24)
 ```
-
----
-
-## 📸 Submission Evidence (S01–S24)
-
-Per the project checklist, capture numbered screenshots from **your own terminal** with your full SRN in the prompt:
-
-```bash
-export SRN='YOUR_FULL_SRN'
-export PS1='[$SRN] \w\$ '
-```
-
-Required screenshots: S01 (environment) → S24 (submission ZIP). Combine them with one-line explanations into a single PDF named `YOUR_SRN.pdf`.
-
 ---
 
 ## 📄 License
