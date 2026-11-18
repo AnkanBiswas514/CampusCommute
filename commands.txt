@@ -1,0 +1,106 @@
+================================================================================
+CAMPUSCOMPUTE — DEMO COMMANDS
+Intelligent Job Scheduling & Resource Management (Level 3 Mini-Project)
+================================================================================
+
+Prerequisites (verify first):
+    gcc --version
+    make --version
+
+--------------------------------------------------------------------------------
+STEP 1 — BUILD FROM SOURCE
+--------------------------------------------------------------------------------
+    make
+    # Produces the executable: ./campuscompile
+    # Clean build with:        make clean
+
+--------------------------------------------------------------------------------
+STEP 2 — CLI / HELP  (FR8)
+--------------------------------------------------------------------------------
+    ./campuscompute help
+    # Shows all available commands and usage information.
+
+--------------------------------------------------------------------------------
+STEP 3 — CPU SCHEDULING  (FR1 / FR2)
+--------------------------------------------------------------------------------
+    ./campuscompute fcfs
+    # First-Come First-Served scheduling.
+    # Displays execution order/timeline, completion time, turnaround time,
+    # waiting time, and averages. Tie-break: smaller job_id first.
+
+    ./campuscompute rr 2
+    # Round Robin scheduling with time quantum = 2.
+    # Change the number to use a different quantum.
+
+    ./campuscompute priority
+    # Non-preemptive Priority scheduling.
+    # Lower priority number = higher priority. Tie-break: smaller job_id first.
+
+    ./campuscompute schedule
+    # Runs FCFS, Round Robin, and Priority on the same job set
+    # and shows a side-by-side comparison.
+
+--------------------------------------------------------------------------------
+STEP 4 — CONCURRENT ACTIVITY LOGGER  (FR3)
+--------------------------------------------------------------------------------
+    ./campuscompute logger activity.log 2 5
+    # POSIX threads producer-consumer logger.
+    #   activity.log  -> output log file
+    #   2             -> number of producers
+    #   5             -> messages per producer
+    # Demonstrates mutex + condition variables, bounded queue, clean thread
+    # termination. Writes readable event logs to activity.log.
+
+--------------------------------------------------------------------------------
+STEP 5 — INTER-PROCESS COMMUNICATION  (FR4)
+--------------------------------------------------------------------------------
+    ./campuscompute ipc ipc.log
+    # POSIX shared memory (shm_open/mmap) + named semaphore (sem_open).
+    # Producer and consumer are separate fork() processes exchanging data.
+    # Logs activity to ipc.log. Cleans up shm/sem resources afterward.
+
+--------------------------------------------------------------------------------
+STEP 6 — BANKER'S SAFETY ALGORITHM  (FR5)
+--------------------------------------------------------------------------------
+    ./campuscompute banker
+    # Need = Maximum - Allocation.
+    # Tests a safe state (prints valid safe sequence) and an unsafe state
+    # (reports "UNSAFE"). Both cases demonstrated.
+
+--------------------------------------------------------------------------------
+STEP 7 — WORKER FAILURE DETECTION  (FR6)
+--------------------------------------------------------------------------------
+    ./campuscompute worker 0
+    # Normal worker completion. fork() + waitpid(); child exits 0.
+    # Parent reports normal completion confirmed.
+
+    ./campuscompute worker 1
+    # Simulated worker failure. Child exits with code 42 (controlled,
+    # simulated failure — not a real OS failure).
+    # Parent detects non-zero exit and reports simulated failure.
+
+--------------------------------------------------------------------------------
+STEP 8 — RESOURCE LIMITS  (FR7)
+--------------------------------------------------------------------------------
+    ./campuscompute limits
+    # setrlimit(RLIMIT_CPU, 1s) on a spinning child process.
+    # Observed effect: child terminated by SIGXCPU (signal 24).
+    # Original limit restored after demo (cleanup).
+
+--------------------------------------------------------------------------------
+STEP 9 — INTEGRATED DEMO (ALL FEATURES)
+--------------------------------------------------------------------------------
+    ./campuscompute all
+    # Runs every feature in sequence: scheduling comparison, logger,
+    # IPC, Banker's tests, worker normal + failure, limits.
+    # Shows the integrated demonstration summary.
+
+--------------------------------------------------------------------------------
+STEP 10 — CLEANUP
+--------------------------------------------------------------------------------
+    make clean
+    # Removes object files, executable, and log files (activity.log, ipc.log).
+
+================================================================================
+END OF COMMANDS
+================================================================================
