@@ -1,9 +1,3 @@
-/* limits.c - Process resource limits (FR7)
- *
- * Demonstrates setrlimit() on RLIMIT_CPU (maximum CPU time) and reports the
- * observed effect. Resources created by the program are cleaned up.
- */
-
 #include "campuscompute.h"
 
 #include <stdio.h>
@@ -16,7 +10,7 @@
 int limits_demo(void) {
     struct rlimit rl;
 
-    /* Show current RLIMIT_CPU limit. */
+  
     if (getrlimit(RLIMIT_CPU, &rl) != 0) {
         perror("getrlimit RLIMIT_CPU");
         return -1;
@@ -25,9 +19,9 @@ int limits_demo(void) {
     if (rl.rlim_cur == RLIM_INFINITY) printf("unlimited\n");
     else printf("%ld seconds\n", (long)rl.rlim_cur);
 
-    /* Set a soft CPU limit of 1 second for a child that spins. */
+  
     struct rlimit new_lim;
-    new_lim.rlim_cur = 1;   /* soft limit: 1 second CPU */
+    new_lim.rlim_cur = 1;   
     new_lim.rlim_max = RLIM_INFINITY;
     if (setrlimit(RLIMIT_CPU, &new_lim) != 0) {
         perror("setrlimit RLIMIT_CPU");
@@ -40,7 +34,7 @@ int limits_demo(void) {
     if (pid < 0) { perror("fork"); return -1; }
 
     if (pid == 0) {
-        /* Child: consume CPU until the limit triggers SIGXCPU. */
+        
         printf("[Child] spinning to burn CPU (limit = 1s)...\n");
         fflush(stdout);
         volatile unsigned long sink = 0;
@@ -64,7 +58,7 @@ int limits_demo(void) {
     }
     fflush(stdout);
 
-    /* Restore the original limit (cleanup). */
+    
     if (setrlimit(RLIMIT_CPU, &rl) != 0) perror("setrlimit restore");
     printf("[Limits] original RLIMIT_CPU restored.\n");
     return 0;
