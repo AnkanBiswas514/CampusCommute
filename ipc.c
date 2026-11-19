@@ -1,10 +1,3 @@
-/* ipc.c - Inter-process communication (FR4)
- *
- * Uses POSIX shared memory (shm_open/mmap) plus a named semaphore
- * (sem_open/sem_wait/sem_post) as a mutex to exchange data between
- * cooperating processes. All created resources are cleaned up.
- */
-
 #include "campuscompute.h"
 
 #include <fcntl.h>
@@ -23,16 +16,14 @@ static sem_t *sem = SEM_FAILED;
 static shm_region_t *region = NULL;
 static int cleanup_done = 0;
 
-/* Close mappings/fd/semaphore without unlinking POSIX objects.
- * Used by child processes; the OS reclaims remaining state on exit. */
+
 static void ipc_child_close(void) {
     if (region) { munmap(region, SHM_SIZE); region = NULL; }
     if (shm_fd >= 0) { close(shm_fd); shm_fd = -1; }
     if (sem != SEM_FAILED) { sem_close(sem); sem = SEM_FAILED; }
 }
 
-/* Full cleanup including unlinking the POSIX shared memory and named
- * semaphore. Called once by the parent after both children have exited. */
+
 static void ipc_cleanup(void) {
     if (cleanup_done) return;
     cleanup_done = 1;
@@ -41,10 +32,10 @@ static void ipc_cleanup(void) {
     sem_unlink(SEM_NAME);
 }
 
-/* Producer: writes 5 records into shared memory, guarded by the semaphore. */
+
 int ipc_producer_main(const char *logfile) {
     (void)logfile;
-    /* Clear any stale objects left by a previous interrupted run. */
+    
     shm_unlink(SHM_NAME);
     sem_unlink(SEM_NAME);
     shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
@@ -54,7 +45,6 @@ int ipc_producer_main(const char *logfile) {
     region = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (region == MAP_FAILED) { perror("producer mmap"); return -1; }
 
-    /* Named semaphore used as a mutex, initially available (value 1). */
     sem = sem_open(SEM_NAME, O_CREAT, 0666, 1);
     if (sem == SEM_FAILED) { perror("producer sem_open"); return -1; }
 
@@ -62,14 +52,14 @@ int ipc_producer_main(const char *logfile) {
     region->count = 0;
 
     for (int i = 0; i < 5; i++) {
-        sem_wait(sem); /* enter critical section */
+        sem_wait(sem); 
         int slot = region->count % 8;
         region->records[slot].producer_id = (int)getpid();
         region->records[slot].value = (i + 1) * 10;
         region->records[slot].sequence = i + 1;
         region->records[slot].done = 0;
         region->count++;
-        sem_post(sem); /* leave critical section */
+        sem_post(sem);
 
         printf("[Producer] wrote record seq=%d value=%d pid=%d\n",
                region->records[slot].sequence,
@@ -79,7 +69,7 @@ int ipc_producer_main(const char *logfile) {
         usleep(50000);
     }
 
-    /* Mark completion. */
+
     sem_wait(sem);
     region->records[region->count % 8].done = 1;
     sem_post(sem);
@@ -90,7 +80,7 @@ int ipc_producer_main(const char *logfile) {
     return 0;
 }
 
-/* Consumer: reads records from shared memory until producer signals done. */
+
 int ipc_consumer_main(const char *logfile) {
     (void)logfile;
     shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
@@ -115,12 +105,12 @@ int ipc_consumer_main(const char *logfile) {
             printf("[Consumer] read record seq=%d value=%d pid=%d\n",
                    rec->sequence, rec->value, rec->producer_id);
             fflush(stdout);
-            rec->sequence = 0; /* mark consumed */
+            rec->sequence = 0; 
             consumed++;
         }
-        sem_post(sem); /* leave critical section */
+        sem_post(sem); 
 
-        /* Exit: producer finished and every record consumed. */
+
         if (producer_done && all_consumed) break;
     }
 
@@ -130,7 +120,7 @@ int ipc_consumer_main(const char *logfile) {
     return 0;
 }
 
-/* Orchestrator: fork producer, wait, fork consumer, wait, then cleanup. */
+
 int ipc_run(const char *logfile) {
     FILE *fp = fopen(logfile, "w");
     if (!fp) { perror("fopen ipc log"); return -1; }
@@ -143,7 +133,7 @@ int ipc_run(const char *logfile) {
     if (pid < 0) { perror("fork producer"); ipc_cleanup(); return -1; }
 
     if (pid == 0) {
-        int rc = ipc_producer_main(logfile); /* closes mappings, no unlink */
+        int rc = ipc_producer_main(logfile); 
         _exit(rc == 0 ? 0 : 1);
     }
 
@@ -161,7 +151,7 @@ int ipc_run(const char *logfile) {
     if (cpid < 0) { perror("fork consumer"); ipc_cleanup(); return -1; }
 
     if (cpid == 0) {
-        int rc = ipc_consumer_main(logfile); /* closes mappings, no unlink */
+        int rc = ipc_consumer_main(logfile); 
         _exit(rc == 0 ? 0 : 1);
     }
 
