@@ -1,23 +1,15 @@
-/* banker.c - Banker's safety algorithm (FR5)
- *
- * Need = Maximum - Allocation. Implements the safety algorithm to find a
- * safe sequence for a safe state and to identify an unsafe state. Both
- * cases are tested with built-in inputs.
- */
-
 #include "campuscompute.h"
 
 #include <stdio.h>
 #include <string.h>
 
-/* Compute Need matrix. */
+
 static void compute_need(banker_state_t *bs) {
     for (int i = 0; i < bs->n; i++)
         for (int j = 0; j < bs->m; j++)
             bs->need[i][j] = bs->maximum[i][j] - bs->allocation[i][j];
 }
 
-/* Safety algorithm. Returns 1 if safe (safe_seq filled), 0 if unsafe. */
 int banker_is_safe(const banker_state_t *bs, int *safe_seq) {
     int work[BANKER_MAX_RESOURCES];
     int finish[BANKER_MAX_PROCESSES];
@@ -41,7 +33,7 @@ int banker_is_safe(const banker_state_t *bs, int *safe_seq) {
                 found = 1;
             }
         }
-        if (!found) break; /* no process can proceed -> unsafe */
+        if (!found) break; 
     }
     return count == bs->n;
 }
@@ -62,7 +54,7 @@ static void print_state(const banker_state_t *bs) {
 }
 
 void banker_run_tests(void) {
-    /* ---- TEST 1: SAFE STATE ---- */
+    
     banker_state_t bs;
     bs.n = 5; bs.m = 3;
     int avail[] = {3, 3, 2};
@@ -95,7 +87,7 @@ void banker_run_tests(void) {
         printf("\n");
     }
 
-    /* ---- TEST 2: UNSAFE STATE ---- */
+   
     banker_state_t bs2;
     bs2.n = 4; bs2.m = 3;
     int avail2[] = {1, 1, 0};
