@@ -1,23 +1,3 @@
-/* main.c - CampusCompute command-line interface (FR8)
- *
- * Menu-driven CLI. Each implemented feature is independently testable via
- * a command. Invalid commands/malformed input print a usage message.
- *
- * Usage:
- *   ./campuscompute              (interactive menu)
- *   ./campuscompute fcfs
- *   ./campuscompute rr <quantum>
- *   ./campuscompute priority
- *   ./campuscompute schedule     (run all three + comparison)
- *   ./campuscompute logger [logfile] [producers] [msgs_each]
- *   ./campuscompute ipc [logfile]
- *   ./campuscompute banker
- *   ./campuscompute worker [0|1] (0=normal, 1=simulated failure)
- *   ./campuscompute limits
- *   ./campuscompute all          (run every feature)
- *   ./campuscompute help
- */
-
 #include "campuscompute.h"
 
 #include <ctype.h>
@@ -25,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* A fixed, repeatable job set used for scheduling demos (FR1/FR2). */
+
 static const job_t DEFAULT_JOBS[] = {
     {1, 0,  7, 3, 7, 0,0,0,0, JOB_STATUS_PENDING},
     {2, 2,  4, 1, 4, 0,0,0,0, JOB_STATUS_PENDING},
@@ -74,7 +54,7 @@ static void run_schedule_all(void) {
     scheduler_free_result(r);
 
     printf("\n--- Comparison (avg turnaround / avg waiting) ---\n");
-    printf("FCFS        : -\n");  /* filled below for clarity */
+    printf("FCFS        : -\n");  
     printf("RR (q=2)    : -\n");
     printf("Priority    : -\n");
     printf("(See per-policy tables above for exact averages.)\n");
@@ -117,7 +97,7 @@ static int interactive_menu(void) {
         printf("  9) limits  10) all  0) exit\n");
         printf("> ");
         if (!fgets(line, sizeof(line), stdin)) break;
-        /* strip newline */
+        
         size_t len = strlen(line);
         while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r'))
             line[--len] = '\0';
