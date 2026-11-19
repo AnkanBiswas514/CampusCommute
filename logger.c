@@ -1,11 +1,3 @@
-/* logger.c - Concurrent activity logger (FR3)
- *
- * POSIX threads producer-consumer over a bounded queue. Shared data is
- * protected by a mutex; full/empty conditions are coordinated with
- * condition variables. Threads are terminated cleanly. Events are written
- * to a log file.
- */
-
 #include "campuscompute.h"
 
 #include <pthread.h>
@@ -16,8 +8,8 @@
 
 typedef struct {
     pthread_mutex_t mutex;
-    pthread_cond_t  cond_empty;   /* queue not empty -> consumer wakes */
-    pthread_cond_t  cond_full;    /* queue not full  -> producer wakes */
+    pthread_cond_t  cond_empty;   
+    pthread_cond_t  cond_full;    
     logger_queue_t  q;
     FILE           *logfile;
     int             num_producers;
@@ -25,7 +17,7 @@ typedef struct {
     int             producers_finished;
 } logger_ctx_t;
 
-/* Caller must hold ctx->mutex. Writes one event line to the log file. */
+
 static void log_write(logger_ctx_t *ctx, const char *msg) {
     fprintf(ctx->logfile, "%s\n", msg);
     fflush(ctx->logfile);
@@ -51,7 +43,7 @@ static int queue_pop(logger_ctx_t *ctx, char *out) {
     return 0;
 }
 
-/* Producer thread argument and function. */
+
 typedef struct {
     logger_ctx_t *ctx;
     int           index;
@@ -69,30 +61,30 @@ static void *producer_fn(void *arg) {
                  pa->index, i + 1, pa->msgs);
 
         pthread_mutex_lock(&ctx->mutex);
-        /* Wait while queue full and producers not done. */
+        
         while (ctx->q.count >= LOGGER_QUEUE_CAP) {
             pthread_cond_wait(&ctx->cond_full, &ctx->mutex);
         }
         queue_push(ctx, msg);
         log_write(ctx, msg);
-        pthread_cond_signal(&ctx->cond_empty); /* wake a consumer */
+        pthread_cond_signal(&ctx->cond_empty);
         pthread_mutex_unlock(&ctx->mutex);
 
-        usleep(10000); /* small delay to interleave */
+        usleep(10000); 
     }
 
     pthread_mutex_lock(&ctx->mutex);
     ctx->producers_finished++;
     int all_done = (ctx->producers_finished == ctx->num_producers);
     if (all_done) ctx->q.producers_done = 1;
-    pthread_cond_broadcast(&ctx->cond_empty); /* wake consumers to drain */
+    pthread_cond_broadcast(&ctx->cond_empty); 
     pthread_mutex_unlock(&ctx->mutex);
 
     free(pa);
     return NULL;
 }
 
-/* ---------- Consumer thread ---------- */
+
 
 static void *consumer_fn(void *arg) {
     logger_ctx_t *ctx = (logger_ctx_t *)arg;
@@ -100,7 +92,7 @@ static void *consumer_fn(void *arg) {
 
     for (;;) {
         pthread_mutex_lock(&ctx->mutex);
-        /* Wait while queue empty and producers still active. */
+       
         while (ctx->q.count == 0 && !ctx->q.producers_done) {
             pthread_cond_wait(&ctx->cond_empty, &ctx->mutex);
         }
@@ -109,12 +101,12 @@ static void *consumer_fn(void *arg) {
             break;
         }
         if (queue_pop(ctx, msg) == 0) {
-            pthread_cond_signal(&ctx->cond_full); /* wake a producer */
+            pthread_cond_signal(&ctx->cond_full); /
             pthread_mutex_unlock(&ctx->mutex);
 
             snprintf(msg + strlen(msg), sizeof(msg) - strlen(msg),
                      " -> consumed");
-            /* re-log the consumed event under lock */
+            
             pthread_mutex_lock(&ctx->mutex);
             fprintf(ctx->logfile, "Consumer: %s\n", msg);
             fflush(ctx->logfile);
