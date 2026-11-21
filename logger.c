@@ -101,7 +101,7 @@ static void *consumer_fn(void *arg) {
             break;
         }
         if (queue_pop(ctx, msg) == 0) {
-            pthread_cond_signal(&ctx->cond_full); /
+            pthread_cond_signal(&ctx->cond_full); 
             pthread_mutex_unlock(&ctx->mutex);
 
             snprintf(msg + strlen(msg), sizeof(msg) - strlen(msg),
